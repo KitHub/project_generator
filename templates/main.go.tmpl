@@ -1,0 +1,15 @@
+package main
+
+import (
+	"log"
+	"net/http"
+	"{{.ModuleName}}/router"
+)
+
+func main() {
+	// start server
+	log.Println("Server start on :{{.Port}}")
+	if err := http.ListenAndServe(":{{.Port}}", router.InitRouter()); err != nil {
+		log.Fatalf("Server start failed: %v", err)
+	}
+}

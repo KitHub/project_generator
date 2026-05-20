@@ -1,0 +1,10 @@
+package config
+
+// AppConfig application configuration
+type AppConfig struct {
+    Port string
+}
+
+var GlobalConfig = AppConfig{
+	Port: "{{.Port}}",
+}

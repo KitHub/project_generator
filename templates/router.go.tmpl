@@ -1,0 +1,33 @@
+package router
+
+import (
+	"net/http"
+	"time"
+
+	"github.com/gin-gonic/gin"
+)
+
+// InitRouter init router
+func InitRouter() *gin.Engine {
+	r := gin.Default()
+
+	// helth check
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+			"time":   time.Now().Format("2006-01-02 15:04:05"),
+		})
+	})
+
+	// demo
+	api := r.Group("/api")
+	{
+		api.GET("/hello", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "Hello from generated project!",
+			})
+		})
+	}
+
+	return r
+}
