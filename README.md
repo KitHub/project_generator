@@ -19,4 +19,4 @@ Project generation with script is simple, but cannot support interactive generat
 
 ## Generate a project with service
 
-not implemented
+not implemented yet

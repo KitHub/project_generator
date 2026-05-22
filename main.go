@@ -15,9 +15,9 @@ import (
 
 // ProjectRequest project generation request struct
 type ProjectRequest struct {
-	ProjectName string `json:"project_name"` // project name
-	ModuleName  string `json:"module_name"`  // go module name
-	Port        string `json:"port"`         // server port
+	AppName    string `json:"app_name"`    // project name
+	ModuleName string `json:"module_name"` // go module name
+	Port       string `json:"port"`        // server port
 }
 
 // templates files
@@ -53,7 +53,7 @@ func generateProject(req ProjectRequest) ([]byte, error) {
 	defer os.RemoveAll(tmpDir)
 
 	// project root and dirs
-	root := filepath.Join(tmpDir, req.ProjectName)
+	root := filepath.Join(tmpDir, req.AppName)
 	dirs := []string{
 		root,
 		filepath.Join(root, "router"),
