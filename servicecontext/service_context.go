@@ -11,6 +11,7 @@ import (
 
 type ServiceContext struct {
 	ShutdownLogic logic.ShutdownLogic
+	RenderLogic   logic.TemplateRenderLogic
 }
 
 var gServiceCtx *ServiceContext
@@ -23,6 +24,7 @@ func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) 
 
 		gServiceCtx = &ServiceContext{
 			ShutdownLogic: logic.NewShutdownLogic(),
+			RenderLogic:   logic.NewTemplateRenderLogic(),
 		}
 	})
 	if err != nil {

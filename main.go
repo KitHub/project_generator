@@ -18,7 +18,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/KitHub/protocols/devicemanagementplatformapi"
+	"github.com/KitHub/project_generator/config"
+	"github.com/KitHub/protocols/projectgeneratorapi"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
@@ -144,7 +145,7 @@ func generateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.ProjectName == "" || req.ModuleName == "" || req.Port == "" {
+	if req.AppName == "" || req.ModuleName == "" || req.Port == "" {
 		http.Error(w, "project_name, module_name, port are required", http.StatusBadRequest)
 		return
 	}
@@ -156,12 +157,12 @@ func generateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filename := fmt.Sprintf("%s_%d.zip", req.ProjectName, time.Now().Unix())
+	filename := fmt.Sprintf("%s_%d.zip", req.AppName, time.Now().Unix())
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 	_, _ = w.Write(zipData)
 
-	log.Printf("generate project succeeded: %s | module: %s | port: %s", req.ProjectName, req.ModuleName, req.Port)
+	log.Printf("generate project succeeded: %s | module: %s | port: %s", req.AppName, req.ModuleName, req.Port)
 }
 
 type ServerArgs struct {
@@ -199,8 +200,6 @@ func main() {
 			slog.String("error", err.Error()))
 		panic(err)
 	}
-
-	shutdownGracefully(ctx, servicecontext.GetShutdownCallbacks())
 }
 
 func parepareArgs(ctx context.Context) ServerArgs {
@@ -264,7 +263,7 @@ func initRpcServer(ctx context.Context, serverConfig *config.ServiceConfigEntity
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 	)
 	// bind the service implementation to the gRPC server
-	devicemanagementplatformapi.RegisterDeviceManagementPlatformAPIServer(
+	projectgeneratorapi.RegisterProjectGeneratorAPIServer(
 		server, serviceContext.ApiService)
 
 	go func() {
@@ -294,7 +293,7 @@ func initHttpServer(ctx context.Context, serverConfig *config.ServiceConfigEntit
 		return nil, err
 	}
 	restGateway := runtime.NewServeMux()
-	err = devicemanagementplatformapi.RegisterDeviceManagementPlatformAPIHandlerClient(ctx, restGateway, devicemanagementplatformapi.NewDeviceManagementPlatformAPIClient(connection))
+	err = projectgeneratorapi.RegisterProjectGeneratorAPIHandlerClient(ctx, restGateway, projectgeneratorapi.NewProjectGeneratorAPIClient(connection))
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to register REST gateway", slog.String("error", err.Error()))
 		return nil, err
