@@ -73,7 +73,12 @@ func loadConfig(ctx context.Context, configFile string) (ConfigEntity, error) {
 			slog.String("configFile", configFile), slog.Any("err", err))
 		return ConfigEntity{}, err
 	}
-	configMarshalBytes, _ := yaml.Marshal(config)
+	configMarshalBytes, err := yaml.Marshal(config)
+	if err != nil {
+		slog.ErrorContext(ctx, "marshal config failed",
+			slog.String("configFile", configFile), slog.Any("err", err))
+		return ConfigEntity{}, err
+	}
 	slog.InfoContext(ctx, "load config success",
 		slog.String("configFile", configFile),
 		slog.String("config", string(configMarshalBytes)))
@@ -115,6 +120,6 @@ func LoadConfig(ctx context.Context, configFile string) (ConfigEntity, error) {
 	return config, nil
 }
 
-func GetConfig(ctx context.Context) (ConfigEntity, error) {
-	return getGConfigEntity(), nil
+func GetConfig(ctx context.Context) ConfigEntity {
+	return getGConfigEntity()
 }

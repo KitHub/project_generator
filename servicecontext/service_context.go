@@ -7,12 +7,13 @@ import (
 
 	"github.com/KitHub/project_generator/config"
 	"github.com/KitHub/project_generator/logic"
+	"github.com/KitHub/project_generator/service"
 )
 
 type ServiceContext struct {
-	ShutdownLogic logic.ShutdownLogic
-	RenderLogic   logic.TemplateRenderLogic
-	ProjectLogic  logic.ProjectLogic
+	ShutdownLogic  logic.ShutdownLogic
+	ProjectLogic   logic.ProjectLogic
+	ProjectService *service.ProjectService
 }
 
 var gServiceCtx *ServiceContext
@@ -21,12 +22,16 @@ var once sync.Once
 func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) (
 	serviceCtx *ServiceContext, err error) {
 	slog.InfoContext(ctx, "init service context")
-	once.Do(func() {
 
+	shutdownLogic := logic.NewShutdownLogic()
+	projectLogic := logic.NewProjectLogic()
+	projectService := service.NewProjectService(projectLogic)
+
+	once.Do(func() {
 		gServiceCtx = &ServiceContext{
-			ShutdownLogic: logic.NewShutdownLogic(),
-			RenderLogic:   logic.NewTemplateRenderLogic(),
-			ProjectLogic:  logic.NewProjectLogic(),
+			ShutdownLogic:  shutdownLogic,
+			ProjectLogic:   projectLogic,
+			ProjectService: projectService,
 		}
 	})
 	if err != nil {
@@ -36,5 +41,8 @@ func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) 
 	}
 	slog.InfoContext(ctx, "init service context done")
 	return gServiceCtx, err
+}
 
+func GetServiceContext() *ServiceContext {
+	return gServiceCtx
 }

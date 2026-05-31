@@ -36,9 +36,14 @@ type TraceConfigEntity struct {
 	SamplerRatio     float64 `yaml:"sampler_ratio"`     // 采样器参数（如采样率）
 }
 
+type TemplateConfigEntity struct {
+	TemplatesDir string `yaml:"templates_dir"` // 模板文件目录
+}
+
 type ConfigEntity struct {
-	LogConfig   *LogConfigEntity    `yaml:"log"`
-	DBConfig    *DBConfigEntity     `yaml:"db"`
-	Server      *ServerConfigEntity `yaml:"server"`
-	TraceConfig *TraceConfigEntity  `yaml:"trace"`
+	LogConfig   *LogConfigEntity      `yaml:"log"`
+	DBConfig    *DBConfigEntity       `yaml:"db"`
+	Server      *ServerConfigEntity   `yaml:"server"`
+	TraceConfig *TraceConfigEntity    `yaml:"trace"`
+	Templates   *TemplateConfigEntity `yaml:"templates"`
 }
