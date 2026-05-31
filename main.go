@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"html/template"
 	"log"
 	"log/slog"
 	"net"
@@ -19,6 +18,7 @@ import (
 	"time"
 
 	"github.com/KitHub/project_generator/config"
+	"github.com/KitHub/project_generator/servicecontext"
 	"github.com/KitHub/protocols/projectgeneratorapi"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -40,20 +40,6 @@ var templateFiles = map[string]string{
 	"router": "templates/router.go.tmpl",
 	"config": "templates/config.go.tmpl",
 	"readme": "templates/README.md.tmpl",
-}
-
-// renderTemplate read template file and render with data
-func renderTemplate(tplPath string, data ProjectRequest) (string, error) {
-	tpl, err := template.ParseFiles(tplPath)
-	if err != nil {
-		return "", err
-	}
-
-	var buf bytes.Buffer
-	if err := tpl.Execute(&buf, data); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
 }
 
 // generateProject generate project files and return zip data
