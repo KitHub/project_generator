@@ -23,8 +23,8 @@ var onceProjectService sync.Once
 
 type ProjectService struct {
 	projectgeneratorapi.UnimplementedProjectGeneratorAPIServer
-	ProjectLogic    logic.ProjectLogic
-	generateSeqsMap sync.Map // map[seq]projectDir, used for downloading generated project files
+	ProjectLogic    *logic.ProjectLogic
+	generateSeqsMap *sync.Map // map[seq]projectDir, used for downloading generated project files
 }
 
 // DownloadGeneratedProject implements [projectgeneratorapi.ProjectGeneratorAPIServer].
@@ -97,11 +97,11 @@ func (p *ProjectService) GenerateProject(ctx context.Context, req *projectgenera
 	return rsp, nil
 }
 
-func NewProjectService(projectLogic logic.ProjectLogic) *ProjectService {
+func NewProjectService(projectLogic *logic.ProjectLogic) *ProjectService {
 	onceProjectService.Do(func() {
 		projectService = &ProjectService{
 			ProjectLogic:    projectLogic,
-			generateSeqsMap: sync.Map{},
+			generateSeqsMap: &sync.Map{},
 		}
 
 		go func() {

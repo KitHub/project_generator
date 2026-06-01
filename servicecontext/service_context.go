@@ -11,8 +11,8 @@ import (
 )
 
 type ServiceContext struct {
-	ShutdownLogic  logic.ShutdownLogic
-	ProjectLogic   logic.ProjectLogic
+	ShutdownLogic  *logic.ShutdownLogic
+	ProjectLogic   *logic.ProjectLogic
 	ProjectService *service.ProjectService
 }
 

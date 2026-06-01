@@ -14,18 +14,14 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-var projectLogic ProjectLogic
+var projectLogic *ProjectLogic
 var onceProjectLogic sync.Once
 
-type ProjectLogic interface {
-	GenerateProject(ctx context.Context, param entity.GenerateProjectParam, templateDir string) (entity.GenerateProjectResult, error)
-}
-
-type projectLogicImpl struct {
+type ProjectLogic struct {
 }
 
 // GenerateProject implements [ProjectLogic].
-func (p *projectLogicImpl) GenerateProject(ctx context.Context, param entity.GenerateProjectParam, templateDir string) (entity.GenerateProjectResult, error) {
+func (p *ProjectLogic) GenerateProject(ctx context.Context, param entity.GenerateProjectParam, templateDir string) (entity.GenerateProjectResult, error) {
 	slog.InfoContext(ctx, "generating project", slog.Any("param", param))
 
 	// create temp dir
@@ -85,9 +81,9 @@ func (p *projectLogicImpl) GenerateProject(ctx context.Context, param entity.Gen
 	return entity.GenerateProjectResult{ProjectFilesDir: projectDir}, nil
 }
 
-func NewProjectLogic() ProjectLogic {
+func NewProjectLogic() *ProjectLogic {
 	onceProjectLogic.Do(func() {
-		projectLogic = &projectLogicImpl{}
+		projectLogic = &ProjectLogic{}
 	})
 	return projectLogic
 }

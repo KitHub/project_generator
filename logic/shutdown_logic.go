@@ -6,24 +6,19 @@ import (
 	"sync"
 )
 
-var shutdownLogic ShutdownLogic
+var shutdownLogic *ShutdownLogic
 var onceShutdownLogic sync.Once
 
 type ShutdownCallback func(ctx context.Context) error
 
-type ShutdownLogic interface {
-	RegisterShutdownCallback(callback ShutdownCallback)
-	ExecuteShutdownCallbacks(ctx context.Context) error
-}
-
-type shutdownLogicImpl struct {
+type ShutdownLogic struct {
 	shutdownCallbacks      []ShutdownCallback
 	lock                   sync.Mutex
 	shutdownCallbacksDoing bool
 }
 
 // ExecuteShutdownCallbacks implements [ShutdownLogic].
-func (s *shutdownLogicImpl) ExecuteShutdownCallbacks(ctx context.Context) error {
+func (s *ShutdownLogic) ExecuteShutdownCallbacks(ctx context.Context) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -32,9 +27,9 @@ func (s *shutdownLogicImpl) ExecuteShutdownCallbacks(ctx context.Context) error 
 		return nil
 	}
 	s.shutdownCallbacksDoing = true
-    defer func() {
-        s.shutdownCallbacksDoing = false
-    }()
+	defer func() {
+		s.shutdownCallbacksDoing = false
+	}()
 
 	var err error
 	for _, callback := range s.shutdownCallbacks {
@@ -48,7 +43,7 @@ func (s *shutdownLogicImpl) ExecuteShutdownCallbacks(ctx context.Context) error 
 }
 
 // RegisterShutdownCallback implements [ShutdownLogic].
-func (s *shutdownLogicImpl) RegisterShutdownCallback(callback ShutdownCallback) {
+func (s *ShutdownLogic) RegisterShutdownCallback(callback ShutdownCallback) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -60,9 +55,9 @@ func (s *shutdownLogicImpl) RegisterShutdownCallback(callback ShutdownCallback) 
 	s.shutdownCallbacks = append(s.shutdownCallbacks, callback)
 }
 
-func NewShutdownLogic() ShutdownLogic {
+func NewShutdownLogic() *ShutdownLogic {
 	onceShutdownLogic.Do(func() {
-		shutdownLogic = &shutdownLogicImpl{
+		shutdownLogic = &ShutdownLogic{
 			shutdownCallbacks: make([]ShutdownCallback, 0),
 			lock:              sync.Mutex{},
 		}
