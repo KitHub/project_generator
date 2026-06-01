@@ -1,0 +1,30 @@
+package logic
+
+import (
+	"context"
+	"sync"
+)
+
+var demoLogic DemoLogic
+var onceDemoLogic sync.Once
+
+type DemoCallback func(ctx context.Context) error
+
+type DemoLogic interface {
+	Hello(ctx context.Context) error
+}
+
+type demoLogicImpl struct {
+}
+
+// Hello implements [DemoLogic].
+func (d *demoLogicImpl) Hello(ctx context.Context) error {
+	panic("unimplemented")
+}
+
+func NewDemoLogic() DemoLogic {
+	onceDemoLogic.Do(func() {
+		demoLogic = &demoLogicImpl{}
+	})
+	return demoLogic
+}

@@ -1,0 +1,29 @@
+package service
+
+import (
+	"sync"
+
+	"github.com/KitHub/project_generator/logic"
+)
+
+var (
+	demoServiceInstance DemoService
+	demoServiceOnce     sync.Once
+)
+
+type DemoService interface {
+	// Define your service methods here
+}
+
+type demoServiceImpl struct {
+	demoLogic logic.DemoLogic
+}
+
+func NewDemoService(demoLogic logic.DemoLogic) DemoService {
+	demoServiceOnce.Do(func() {
+		demoServiceInstance = &demoServiceImpl{
+			demoLogic: demoLogic,
+		}
+	})
+	return demoServiceInstance
+}

@@ -1,0 +1,41 @@
+package servicecontext
+
+import (
+	"context"
+	"log/slog"
+	"sync"
+
+	"github.com/KitHub/project_generator/config"
+	"github.com/KitHub/project_generator/logic"
+	"github.com/KitHub/project_generator/service"
+)
+
+type ServiceContext struct {
+	DemoLogic   logic.DemoLogic
+	DemoService service.DemoService
+}
+
+var gServiceCtx *ServiceContext
+var once sync.Once
+
+func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) (
+	serviceCtx *ServiceContext, err error) {
+	slog.InfoContext(ctx, "init service context")
+
+	demoLogic := logic.NewDemoLogic()
+	demoService := service.NewDemoService(demoLogic)
+
+	once.Do(func() {
+		gServiceCtx = &ServiceContext{
+			DemoLogic:   demoLogic,
+			DemoService: demoService,
+		}
+	})
+
+	slog.InfoContext(ctx, "init service context done")
+	return gServiceCtx, err
+}
+
+func GetServiceContext() *ServiceContext {
+	return gServiceCtx
+}
