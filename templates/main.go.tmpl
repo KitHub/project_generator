@@ -1,8 +1,8 @@
 package main
 
 import (
-	"${{.ModuleName}}/config"
-	servicecontext "${{.ModuleName}}/servicecontext"
+	"{{.ProjectCvsUrl}}/{{.ProjectName}}/config"
+	servicecontext "{{.ProjectCvsUrl}}/{{.ProjectName}}/servicecontext"
 	"context"
 	"flag"
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/KitHub/protocols/${{.AppName}}"
+	"{{.ProjectCvsUrl}}/{{.ProjectName}}/protocols/{{.AppName}}"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
@@ -120,7 +120,7 @@ func initRpcServer(ctx context.Context, serverConfig *config.ServiceConfigEntity
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 	)
 	// bind the service implementation to the gRPC server
-	${{.AppName}}.Register${{.AppName}}APIServer(
+	{{.AppName}}.Register{{.AppName}}APIServer(
 		server, serviceContext.ApiService)
 
 	go func() {

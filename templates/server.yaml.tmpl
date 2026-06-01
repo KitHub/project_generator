@@ -1,11 +1,11 @@
 server:
-  name: "demo" # 服务名称
+  name: "{{.ServerName}}" # 服务名称
   services:
-    - name: "http" # 服务名称
+    - name: "grpc.{{.AppName}}.{{.ServerName}}.http-server" # 服务名称
       host: localhost
       port: 8080
       type: "http"
-    - name: "rpc" # 服务名称
+    - name: "grpc.{{.AppName}}.{{.ServerName}}.rpc-server" # 服务名称
       host: localhost
       port: 8081
       type: "rpc"

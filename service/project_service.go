@@ -124,6 +124,7 @@ func composeProjectServiceParam(ctx context.Context, req *projectgeneratorapi.Ge
 		ProjectDesc:            req.GetProjectDescription(),
 		ProjectLanguage:        req.GetProjectLanguage(),
 		ProjectLanguageVersion: req.GetProjectLanguageVersion(),
+		ProjectCvsUrl:          req.GetProjectCvsUrl(),
 		AppName:                req.GetProjectAppName(),
 		ServerName:             req.GetProjectServerName(),
 	}
