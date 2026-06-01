@@ -34,11 +34,7 @@ func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) 
 			ProjectService: projectService,
 		}
 	})
-	if err != nil {
-		slog.ErrorContext(ctx, "init service context failed", slog.Any("error", err))
-		return nil, err
 
-	}
 	slog.InfoContext(ctx, "init service context done")
 	return gServiceCtx, err
 }
