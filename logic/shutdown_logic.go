@@ -13,7 +13,7 @@ type ShutdownCallback func(ctx context.Context) error
 
 type ShutdownLogic struct {
 	shutdownCallbacks      []ShutdownCallback
-	lock                   sync.Mutex
+	lock                   *sync.Mutex
 	shutdownCallbacksDoing bool
 }
 
@@ -59,7 +59,7 @@ func NewShutdownLogic() *ShutdownLogic {
 	onceShutdownLogic.Do(func() {
 		shutdownLogic = &ShutdownLogic{
 			shutdownCallbacks: make([]ShutdownCallback, 0),
-			lock:              sync.Mutex{},
+			lock:              &sync.Mutex{},
 		}
 	})
 	return shutdownLogic
