@@ -11,8 +11,8 @@ import (
 )
 
 type ServiceContext struct {
-	DemoLogic   logic.DemoLogic
-	DemoService service.DemoService
+	DemoLogic   *logic.DemoLogic
+	DemoService *service.DemoService
 }
 
 var gServiceCtx *ServiceContext

@@ -5,26 +5,20 @@ import (
 	"sync"
 )
 
-var demoLogic DemoLogic
+var demoLogic *DemoLogic
 var onceDemoLogic sync.Once
 
-type DemoCallback func(ctx context.Context) error
-
-type DemoLogic interface {
-	Hello(ctx context.Context) error
-}
-
-type demoLogicImpl struct {
+type DemoLogic struct {
 }
 
 // Hello implements [DemoLogic].
-func (d *demoLogicImpl) Hello(ctx context.Context) error {
+func (d *DemoLogic) Hello(ctx context.Context) error {
 	panic("unimplemented")
 }
 
-func NewDemoLogic() DemoLogic {
+func NewDemoLogic() *DemoLogic {
 	onceDemoLogic.Do(func() {
-		demoLogic = &demoLogicImpl{}
+		demoLogic = &DemoLogic{}
 	})
 	return demoLogic
 }

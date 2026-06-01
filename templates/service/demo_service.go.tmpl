@@ -7,21 +7,17 @@ import (
 )
 
 var (
-	demoServiceInstance DemoService
+	demoServiceInstance *DemoService
 	demoServiceOnce     sync.Once
 )
 
-type DemoService interface {
-	// Define your service methods here
+type DemoService struct {
+	demoLogic *logic.DemoLogic
 }
 
-type demoServiceImpl struct {
-	demoLogic logic.DemoLogic
-}
-
-func NewDemoService(demoLogic logic.DemoLogic) DemoService {
+func NewDemoService(demoLogic *logic.DemoLogic) *DemoService {
 	demoServiceOnce.Do(func() {
-		demoServiceInstance = &demoServiceImpl{
+		demoServiceInstance = &DemoService{
 			demoLogic: demoLogic,
 		}
 	})
