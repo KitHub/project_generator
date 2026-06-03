@@ -3,12 +3,12 @@ package config
 type ServiceConfigEntity struct {
 	Host string `yaml:"host"` // 服务器主机地址
 	Port int    `yaml:"port"` // 服务器端口号
-	Type string `yaml:"type"` // 服务器类型
 }
 
 type ServerConfigEntity struct {
-	Name     string                 `yaml:"name"`     // 服务名称
-	Services []*ServiceConfigEntity `yaml:"services"` // 服务列表
+	Name        string               `yaml:"name"`         // 服务名称
+	GrpcService *ServiceConfigEntity `yaml:"grpc_service"` // gRPC 服务器配置
+	HttpService *ServiceConfigEntity `yaml:"http_service"` // HTTP 服务器配置
 }
 
 type DBConfigEntity struct {

@@ -1,12 +1,11 @@
 server:
   name: "ProjectGenerator" # 服务名称
-  services:
-    - host: localhost
-      port: 8080
-      type: "http"
-    - host: localhost
-      port: 8081
-      type: "rpc"
+  grpc_service:
+    host: localhost
+    port: 8080
+  http_service:
+    host: localhost
+    port: 8081
 
 log:
   log_level: "debug" # 日志级别（debug, info, warn, error）

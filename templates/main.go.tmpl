@@ -48,10 +48,10 @@ func main() {
 		panic(err)
 	}
 
-	// init server
-	err = initServer(ctx, &configEntity, serviceContext)
+	// init services
+	err = initServices(ctx, &configEntity, serviceContext)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to init server",
+		slog.ErrorContext(ctx, "failed to init services",
 			slog.String("error", err.Error()))
 		panic(err)
 	}
@@ -69,43 +69,29 @@ func parepareArgs(ctx context.Context) ServerArgs {
 	return result
 }
 
-func initServer(ctx context.Context, serviceConfig *config.ConfigEntity,
+func initServices(ctx context.Context, serviceConfig *config.ConfigEntity,
 	serviceContext *servicecontext.ServiceContext) (err error) {
 
-	slog.InfoContext(ctx, "init servers")
-	for _, serverConfig := range serviceConfig.Server.Services {
-		switch serverConfig.Type {
-		case "rpc":
-			{
-				_, err := initRpcServer(ctx, serverConfig, serviceContext)
-				if err != nil {
-					slog.ErrorContext(ctx, "failed to init RPC server",
-						slog.String("error", err.Error()))
-					return err
-				}
-			}
-		case "http":
-			{
-				_, err := initHttpServer(ctx, serverConfig, serviceContext)
-				if err != nil {
-					slog.ErrorContext(ctx, "failed to init HTTP server",
-						slog.String("error", err.Error()))
-					return err
-				}
-			}
-		default:
-			{
-				slog.ErrorContext(ctx, "unsupported server type",
-					slog.String("type", serverConfig.Type))
-				return fmt.Errorf("unsupported server type: %s", serverConfig.Type)
-			}
-		}
-
+	slog.InfoContext(ctx, "init services")
+	grpcServiceConfig := serviceConfig.Server.GrpcService
+	httpServiceConfig := serviceConfig.Server.HttpService
+	_, err = initRpcServer(ctx, grpcServiceConfig, serviceContext)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to init RPC server",
+			slog.String("error", err.Error()))
+		return err
 	}
-	slog.InfoContext(ctx, "init servers done")
+	_, err = initHttpServer(ctx, httpServiceConfig, grpcServiceConfig, serviceContext)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to init HTTP server",
+			slog.String("error", err.Error()))
+		return err
+	}
+	slog.InfoContext(ctx, "init services done")
 	return nil
 }
 
+// initRpcServer initializes the gRPC server and registers the service implementation.
 func initRpcServer(ctx context.Context, serverConfig *config.ServiceConfigEntity, serviceContext *servicecontext.ServiceContext) (*grpc.Server, error) {
 	slog.InfoContext(ctx, "init rpc server", slog.Any("serverConfig", serverConfig))
 	hostAndPort := fmt.Sprintf("%s:%d", serverConfig.Host, serverConfig.Port)
@@ -141,24 +127,23 @@ func initRpcServer(ctx context.Context, serverConfig *config.ServiceConfigEntity
 	return server, nil
 }
 
-func initHttpServer(ctx context.Context, serverConfig *config.ServiceConfigEntity, serviceContext *servicecontext.ServiceContext) (*http.Server, error) {
-	slog.InfoContext(ctx, "init http server", slog.Any("serverConfig", serverConfig))
-	hostAndPort := fmt.Sprintf("%s:%d", serverConfig.Host, serverConfig.Port)
-	connection, err := grpc.NewClient(hostAndPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+// initHttpServer initializes the HTTP server and registers the http gateway.
+// The http gateway translates HTTP API into gRPC calls to the gRPC server.
+func initHttpServer(ctx context.Context, httpServerConfig *config.ServiceConfigEntity, grpcServerConfig *config.ServiceConfigEntity, serviceContext *servicecontext.ServiceContext) (*http.Server, error) {
+	slog.InfoContext(ctx, "init http server", slog.Any("serverConfig", httpServerConfig))
+	gRpcHostAndPort := fmt.Sprintf("%s:%d", grpcServerConfig.Host, grpcServerConfig.Port)
+	httpHostAndPort := fmt.Sprintf("%s:%d", httpServerConfig.Host, httpServerConfig.Port)
+	gateway := runtime.NewServeMux()
+	err := projectgeneratorapi.RegisterProjectGeneratorAPIHandlerFromEndpoint(ctx, gateway, grpcHostAndPort, []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())})
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to dial gRPC server", slog.String("error", err.Error()))
-		return nil, err
-	}
-	restGateway := runtime.NewServeMux()
-	err = projectgeneratorapi.RegisterProjectGeneratorAPIHandlerClient(ctx, restGateway, projectgeneratorapi.NewProjectGeneratorAPIClient(connection))
-	if err != nil {
-		slog.ErrorContext(ctx, "Failed to register REST gateway", slog.String("error", err.Error()))
+		slog.ErrorContext(ctx, "Failed to register http gateway", slog.String("error", err.Error()))
 		return nil, err
 	}
 
 	server := http.Server{
-		Addr:    hostAndPort,
-		Handler: restGateway,
+		Addr:    httpHostAndPort,
+		Handler: gateway,
 	}
 
 	go func() {
