@@ -15,9 +15,10 @@ var gConfigFile string = defaultConfigFile
 var configFileLock sync.RWMutex = sync.RWMutex{}
 var gConfigEntity ConfigEntity = ConfigEntity{}
 var configReadWriteLock sync.RWMutex = sync.RWMutex{}
-var refreshInterval time.Duration = time.Duration(30) * time.Second
+var refreshInterval time.Duration = time.Duration(300) * time.Second
 var refreshIntervalLock sync.RWMutex = sync.RWMutex{}
 var timer *time.Timer = time.NewTimer(refreshInterval)
+var onceForReloadConfig sync.Once = sync.Once{}
 
 func setConfigFile(file string) {
 	configFileLock.Lock()
@@ -59,7 +60,7 @@ func SetRefreshInterval(interval time.Duration) {
 	setRefreshInterval(interval)
 }
 
-func loadConfig(ctx context.Context, configFile string) (ConfigEntity, error) {
+func loadConfigInternal(ctx context.Context, configFile string) (ConfigEntity, error) {
 	dataBytes, err := os.ReadFile(configFile)
 	if err != nil {
 		slog.ErrorContext(ctx, "read config failed",
@@ -100,31 +101,33 @@ func LoadConfig(ctx context.Context, configFile string) (ConfigEntity, error) {
 		setConfigFile(configFile)
 	}
 
-	config, err := loadConfig(ctx, configFile)
+	config, err := loadConfigInternal(ctx, configFile)
 	if err != nil {
 		return ConfigEntity{}, err
 	}
 	setGConfigEntity(config)
 
 	// start a goroutine to reload config every refreshInterval
-	go func() {
-		for {
-			timer.Reset(getRefreshInterval())
-			tmpConfigFile := getConfigFile()
-			slog.InfoContext(context.Background(),
-				"start to reload config",
-				slog.String("configFile", tmpConfigFile),
-				slog.Duration("refreshInterval", getRefreshInterval()))
-			<-timer.C
-			_, err := LoadConfig(context.Background(), tmpConfigFile)
-			if err != nil {
-				slog.ErrorContext(context.Background(),
-					"reload config failed",
+	onceForReloadConfig.Do(func() {
+		go func() {
+			for {
+				timer.Reset(getRefreshInterval())
+				tmpConfigFile := getConfigFile()
+				slog.InfoContext(context.Background(),
+					"start to reload config",
 					slog.String("configFile", tmpConfigFile),
-					slog.Any("err", err))
+					slog.Duration("refreshInterval", getRefreshInterval()))
+				<-timer.C
+				_, err := loadConfigInternal(context.Background(), tmpConfigFile)
+				if err != nil {
+					slog.ErrorContext(context.Background(),
+						"reload config failed",
+						slog.String("configFile", tmpConfigFile),
+						slog.Any("err", err))
+				}
 			}
-		}
-	}()
+		}()
+	})
 
 	return config, nil
 }
