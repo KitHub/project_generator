@@ -10,7 +10,8 @@ import (
 	"go.yaml.in/yaml/v3"
 )
 
-var configFile string = "./server.yaml"
+var defaultConfigFile string = "./server.yaml"
+var gConfigFile string = defaultConfigFile
 var configFileLock sync.RWMutex = sync.RWMutex{}
 var gConfigEntity ConfigEntity = ConfigEntity{}
 var configReadWriteLock sync.RWMutex = sync.RWMutex{}
@@ -20,14 +21,14 @@ var timer *time.Timer = time.NewTimer(refreshInterval)
 
 func setConfigFile(file string) {
 	configFileLock.Lock()
-	configFile = file
+	gConfigFile = file
 	configFileLock.Unlock()
 }
 
 func getConfigFile() string {
 	configFileLock.RLock()
 	defer configFileLock.RUnlock()
-	return configFile
+	return gConfigFile
 }
 
 func setRefreshInterval(interval time.Duration) {
@@ -91,6 +92,14 @@ func loadConfig(ctx context.Context, configFile string) (ConfigEntity, error) {
 // After loading the config, it will set the global config entity and start a
 // goroutine to reload the config every refreshInterval.
 func LoadConfig(ctx context.Context, configFile string) (ConfigEntity, error) {
+	if configFile == "" {
+		configFile = defaultConfigFile
+		slog.WarnContext(ctx, "config file is not specified, using default config file", slog.String("configFile", configFile))
+	} else {
+		slog.InfoContext(ctx, "using specified config file", slog.String("configFile", configFile))
+		setConfigFile(configFile)
+	}
+
 	config, err := loadConfig(ctx, configFile)
 	if err != nil {
 		return ConfigEntity{}, err

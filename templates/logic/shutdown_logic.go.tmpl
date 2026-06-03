@@ -55,6 +55,12 @@ func (s *ShutdownLogic) RegisterShutdownCallback(callback ShutdownCallback) {
 	s.shutdownCallbacks = append(s.shutdownCallbacks, callback)
 }
 
+func (s *ShutdownLogic) GetShutdownCallbacks(ctx context.Context) []ShutdownCallback {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	return s.shutdownCallbacks
+}
+
 func NewShutdownLogic() *ShutdownLogic {
 	onceShutdownLogic.Do(func() {
 		shutdownLogic = &ShutdownLogic{

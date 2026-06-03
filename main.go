@@ -7,8 +7,12 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/KitHub/project_generator/config"
+	"github.com/KitHub/project_generator/logic"
 	"github.com/KitHub/project_generator/servicecontext"
 	"github.com/KitHub/protocols/projectgeneratorapi"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -52,6 +56,8 @@ func main() {
 			slog.String("error", err.Error()))
 		panic(err)
 	}
+
+	shutdownGracefully(ctx, servicecontext.GetServiceContext().ShutdownLogic.GetShutdownCallbacks(ctx))
 }
 
 func parepareArgs(ctx context.Context) ServerArgs {
@@ -158,8 +164,13 @@ func initHttpServer(ctx context.Context, serverConfig *config.ServiceConfigEntit
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
-			slog.ErrorContext(ctx, "Failed to start HTTP gateway", slog.String("error", err.Error()))
-			panic(err)
+			if err == http.ErrServerClosed {
+				slog.InfoContext(ctx, "HTTP server closed")
+				return
+			} else {
+				slog.ErrorContext(ctx, "Failed to start HTTP gateway", slog.String("error", err.Error()))
+				panic(err)
+			}
 		}
 	}()
 
@@ -174,4 +185,24 @@ func initHttpServer(ctx context.Context, serverConfig *config.ServiceConfigEntit
 	})
 
 	return &server, nil
+}
+
+func shutdownGracefully(ctx context.Context, shutdownCallbacks []logic.ShutdownCallback) {
+	slog.InfoContext(ctx, "listening close signals...")
+	c := make(chan os.Signal, 1)
+	signal.Notify(
+		c, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT,
+		syscall.SIGTERM,
+	)
+
+	<-c
+	slog.InfoContext(ctx, "graceful shutdown being executed...")
+
+	for _, callback := range shutdownCallbacks {
+		if err := callback(ctx); err != nil {
+			slog.ErrorContext(ctx, "failed to execute shutdown callback", slog.Any("error", err))
+		}
+	}
+
+	slog.InfoContext(ctx, "graceful shutdown done")
 }
