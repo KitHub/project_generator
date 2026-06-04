@@ -16,6 +16,7 @@ import (
 	"github.com/KitHub/project_generator/logic"
 	"github.com/KitHub/protocols/projectgeneratorapi"
 	"github.com/google/uuid"
+	"google.golang.org/genproto/googleapis/api/httpbody"
 )
 
 var projectService *ProjectService
@@ -28,15 +29,15 @@ type ProjectService struct {
 }
 
 // DownloadGeneratedProject implements [projectgeneratorapi.ProjectGeneratorAPIServer].
-func (p *ProjectService) DownloadGeneratedProject(ctx context.Context, req *projectgeneratorapi.DownloadGeneratedProjectRequest) (*projectgeneratorapi.DownloadGeneratedProjectResponse, error) {
+func (p *ProjectService) DownloadGeneratedProject(ctx context.Context, req *projectgeneratorapi.DownloadGeneratedProjectRequest) (*httpbody.HttpBody, error) {
 	slog.InfoContext(ctx, "received download generated project request", slog.Any("request", req.String()))
 	value, ok := p.generateSeqsMap.Load(req.GetSeq())
 	if !ok {
 		errMsg := "invalid seq, no generated project found, maybe deleted before, please generate project again"
 		slog.ErrorContext(ctx, errMsg, slog.String("seq", req.GetSeq()))
-		return &projectgeneratorapi.DownloadGeneratedProjectResponse{
-			ErrCode: 1,
-			ErrMsg:  errMsg,
+		return &httpbody.HttpBody{
+			ContentType: "application/json",
+			Data:        []byte(`{"errCode": 1, "errMsg": "` + errMsg + `"}`),
 		}, nil
 	}
 
@@ -44,27 +45,24 @@ func (p *ProjectService) DownloadGeneratedProject(ctx context.Context, req *proj
 	if !ok {
 		errMsg := "invalid project files directory"
 		slog.ErrorContext(ctx, errMsg, slog.String("seq", req.GetSeq()), slog.Any("projectFilesDir", value))
-		return &projectgeneratorapi.DownloadGeneratedProjectResponse{
-			ErrCode: 1,
-			ErrMsg:  "server error",
+		return &httpbody.HttpBody{
+			ContentType: "application/json",
+			Data:        []byte(`{"errCode": 1, "errMsg": "` + errMsg + `"}`),
 		}, nil
 	}
 
 	content, err := readProjectFilesDir(ctx, projectFilesDirStr)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to read project files directory", slog.String("seq", req.GetSeq()), slog.Any("projectFilesDirStr", projectFilesDirStr), slog.Any("error", err))
-		return &projectgeneratorapi.DownloadGeneratedProjectResponse{
-			ErrCode: 1,
-			ErrMsg:  "server error",
+		return &httpbody.HttpBody{
+			ContentType: "application/json",
+			Data:        []byte(`{"errCode": 1, "errMsg": "server error"}`),
 		}, nil
 	}
 
-	rsp := &projectgeneratorapi.DownloadGeneratedProjectResponse{
-		ErrCode: 0,
-		ErrMsg:  "success",
-		Data: &projectgeneratorapi.DownloadGeneratedProjectResponseData{
-			ProjectZipData: content,
-		},
+	rsp := &httpbody.HttpBody{
+		ContentType: "application/zip",
+		Data:        content,
 	}
 
 	slog.InfoContext(ctx, "project files read successfully", slog.String("seq", req.GetSeq()), slog.Any("projectFilesDirStr", projectFilesDirStr))
@@ -132,6 +130,8 @@ func composeProjectServiceParam(ctx context.Context, req *projectgeneratorapi.Ge
 }
 
 func readProjectFilesDir(ctx context.Context, projectFilesDir string) ([]byte, error) {
+	slog.InfoContext(ctx, "start to read project files directory", slog.String("projectFilesDir", projectFilesDir))
+
 	// zip project
 	zipBuf := &bytes.Buffer{}
 	zw := zip.NewWriter(zipBuf)
@@ -142,19 +142,31 @@ func readProjectFilesDir(ctx context.Context, projectFilesDir string) ([]byte, e
 		}
 	}()
 	err := filepath.Walk(projectFilesDir, func(path string, info os.FileInfo, err error) error {
+		slog.DebugContext(ctx, "walking project files directory", slog.String("projectFilesDir", projectFilesDir), slog.String("currentPath", path))
+
 		if err != nil {
 			slog.ErrorContext(ctx, "failed to walk project files directory", slog.String("projectFilesDir", projectFilesDir), slog.Any("error", err))
 			return err
 		}
-		if info.IsDir() {
-			return nil
-		}
 
 		relPath, err := filepath.Rel(projectFilesDir, path)
 		if err != nil {
-			slog.ErrorContext(ctx, "failed to get relative path", slog.String("projectFilesDir", projectFilesDir), slog.String("path", path), slog.Any("error", err))
+			slog.ErrorContext(ctx, "failed to get relative path for directory", slog.String("projectFilesDir", projectFilesDir), slog.String("path", path), slog.Any("error", err))
 			return err
 		}
+		if relPath == "." {
+			return nil
+		}
+
+		if info.IsDir() {
+			_, err = zw.Create(relPath + string(os.PathSeparator))
+			if err != nil {
+				slog.ErrorContext(ctx, "failed to create directory entry in zip", slog.String("projectFilesDir", projectFilesDir), slog.String("relPath", relPath), slog.Any("error", err))
+				return err
+			}
+			return nil
+		}
+
 		f, err := zw.Create(relPath)
 		if err != nil {
 			slog.ErrorContext(ctx, "failed to create file in zip", slog.String("projectFilesDir", projectFilesDir), slog.String("relPath", relPath), slog.Any("error", err))
@@ -173,10 +185,13 @@ func readProjectFilesDir(ctx context.Context, projectFilesDir string) ([]byte, e
 		}
 		return nil
 	})
+
 	if err != nil {
+		slog.ErrorContext(ctx, "failed to zip project files directory", slog.String("projectFilesDir", projectFilesDir), slog.Any("error", err))
 		return nil, err
 	}
 
+	slog.InfoContext(ctx, "project files directory read and zipped successfully", slog.String("projectFilesDir", projectFilesDir))
 	return zipBuf.Bytes(), nil
 }
 
