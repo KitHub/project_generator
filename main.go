@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,8 +18,10 @@ import (
 	"github.com/KitHub/protocols/projectgeneratorapi"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/proto"
 )
 
 type ServerArgs struct {
@@ -134,7 +137,7 @@ func initHttpServer(ctx context.Context, httpServerConfig *config.ServiceConfigE
 	slog.InfoContext(ctx, "init http server", slog.Any("serverConfig", httpServerConfig))
 	grpcHostAndPort := fmt.Sprintf("%s:%d", grpcServerConfig.Host, grpcServerConfig.Port)
 	httpHostAndPort := fmt.Sprintf("%s:%d", httpServerConfig.Host, httpServerConfig.Port)
-	gateway := runtime.NewServeMux()
+	gateway := runtime.NewServeMux(runtime.WithForwardResponseOption(rspModifier))
 	err := projectgeneratorapi.RegisterProjectGeneratorAPIHandlerFromEndpoint(ctx, gateway, grpcHostAndPort, []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())})
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to register http gateway", slog.String("error", err.Error()))
@@ -169,6 +172,32 @@ func initHttpServer(ctx context.Context, httpServerConfig *config.ServiceConfigE
 	})
 
 	return &server, nil
+}
+
+// 网关WithForwardResponseOption，统一拦截HttpBody设置下载头
+func rspModifier(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
+	_, ok := resp.(*httpbody.HttpBody)
+	if !ok {
+		slog.DebugContext(ctx, "response is not of type HttpBody, cannot set download header")
+		return nil
+	}
+
+	smd, ok := runtime.ServerMetadataFromContext(ctx)
+	if !ok {
+		slog.ErrorContext(ctx, "failed to get server metadata from context")
+		return nil
+	}
+
+	fnList := smd.HeaderMD.Get("download-filename")
+	if len(fnList) == 0 {
+		return nil
+	}
+	fileName := fnList[0]
+	enc := url.QueryEscape(fileName)
+
+	disp := fmt.Sprintf(`attachment; filename="%s"; filename*=UTF-8''%s`, enc, enc)
+	w.Header().Set("Content-Disposition", disp)
+	return nil
 }
 
 func shutdownGracefully(ctx context.Context, shutdownCallbacks []logic.ShutdownCallback) {
