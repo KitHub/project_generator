@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"text/template"
 
@@ -113,7 +115,7 @@ func createProjectFiles(ctx context.Context, root string, templateDir string) er
 	}
 
 	// copy template files to root
-	err = os.CopyFS(root, os.DirFS(templateDir))
+	err = copyDir(templateDir, root)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to copy template files", slog.Any("error", err), slog.String("templateDir", templateDir), slog.String("root", root))
 		return err
@@ -121,6 +123,53 @@ func createProjectFiles(ctx context.Context, root string, templateDir string) er
 
 	slog.InfoContext(ctx, "project files created successfully", slog.String("root", root))
 	return nil
+}
+
+func copyDir(srcDir, dstDir string) error {
+	return filepath.Walk(srcDir, func(path string, f os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath, err := filepath.Rel(srcDir, path)
+		if err != nil {
+			return err
+		}
+		targetPath := filepath.Join(dstDir, relPath)
+
+		if f.IsDir() {
+			return os.MkdirAll(targetPath, f.Mode())
+		}
+
+		dir := filepath.Dir(targetPath)
+		fileName := filepath.Base(targetPath)
+
+		newFileName := fileName
+		if strings.HasSuffix(fileName, ".tmpl") {
+			newFileName = strings.TrimSuffix(fileName, ".tmpl")
+		}
+
+		finalPath := filepath.Join(dir, newFileName)
+
+		return copyFile(path, finalPath)
+	})
+}
+
+func copyFile(src, dst string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+
+	_, err = io.Copy(dstFile, srcFile)
+	return err
 }
 
 func render(ctx context.Context, templateFilePath string, projectInfo entity.GenerateProjectParam) (string, error) {
