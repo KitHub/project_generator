@@ -31,11 +31,6 @@ func (p *ProjectLogic) GenerateProject(ctx context.Context, param entity.Generat
 		return entity.GenerateProjectResult{}, err
 	}
 	slog.InfoContext(ctx, "created temp dir", slog.String("dir", projectDir))
-	defer func() {
-		if err := os.RemoveAll(projectDir); err != nil {
-			slog.ErrorContext(ctx, "failed to remove temp dir", slog.Any("error", err), slog.String("dir", projectDir))
-		}
-	}()
 
 	if templateDir == "" {
 		templateDir, err = getDefaultTemplateDirPath(ctx)
@@ -112,7 +107,7 @@ func createProjectFiles(ctx context.Context, root string, templateDir string) er
 	}
 
 	// check write permission
-	if unix.Access(root, unix.W_OK) == nil {
+	if unix.Access(root, unix.W_OK) != nil {
 		slog.ErrorContext(ctx, "root path is not writable", slog.String("root", root))
 		return fmt.Errorf("root path is not writable")
 	}
