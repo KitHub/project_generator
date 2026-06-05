@@ -36,6 +36,12 @@ type ProjectService struct {
 // DownloadGeneratedProject implements [projectgeneratorapi.ProjectGeneratorAPIServer].
 func (p *ProjectService) DownloadGeneratedProject(ctx context.Context, req *projectgeneratorapi.DownloadGeneratedProjectRequest) (*httpbody.HttpBody, error) {
 	slog.InfoContext(ctx, "received download generated project request", slog.Any("request", req.String()))
+	if req.Validate() != nil {
+		errMsg := "invalid request parameters: " + req.Validate().Error()
+		slog.ErrorContext(ctx, errMsg, slog.Any("request", req.String()))
+		return nil, status.Errorf(codes.InvalidArgument, "invalid request parameters")
+	}
+
 	value, ok := p.generateSeqsMap.Load(req.GetSeq())
 	if !ok {
 		errMsg := "invalid seq, no generated project found, maybe deleted before, please generate project again"
@@ -77,6 +83,12 @@ func (p *ProjectService) DownloadGeneratedProject(ctx context.Context, req *proj
 func (p *ProjectService) GenerateProject(ctx context.Context, req *projectgeneratorapi.GenerateProjectRequest) (*projectgeneratorapi.GenerateProjectResponse, error) {
 	seq := strings.ReplaceAll(uuid.New().String(), "-", "")
 	slog.InfoContext(ctx, "received generate project request", slog.String("seq", seq), slog.Any("request", req.String()))
+
+	if req.Validate() != nil {
+		errMsg := "invalid request parameters: " + req.Validate().Error()
+		slog.ErrorContext(ctx, errMsg, slog.Any("request", req.String()))
+		return nil, status.Errorf(codes.InvalidArgument, "invalid request parameters")
+	}
 
 	param := composeProjectServiceParam(ctx, req)
 
