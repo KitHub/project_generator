@@ -146,7 +146,7 @@ func initHttpServer(ctx context.Context, httpServerConfig *config.ServiceConfigE
 
 	server := http.Server{
 		Addr:    httpHostAndPort,
-		Handler: gateway,
+		Handler: corsMiddleware(gateway),
 	}
 
 	go func() {
@@ -172,6 +172,27 @@ func initHttpServer(ctx context.Context, httpServerConfig *config.ServiceConfigE
 	})
 
 	return &server, nil
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// allow all origins
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// allow the specified headers
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization")
+		// allow the specified methods
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Max-Age", "3600")
+		w.Header().Set("Access-Control-Expose-Headers", "Content-Disposition")
+
+		// handle preflight requests
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 // 网关WithForwardResponseOption，统一拦截HttpBody设置下载头

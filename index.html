@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目生成器 - 表单填写</title>
+    <!-- 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        /* 头部 */
+        .form-header {
+            background: #2d8cf0;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .form-header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            opacity: 0.95;
+            font-size: 14px;
+        }
+
+        /* 表单区域 */
+        .form-body {
+            padding: 35px;
+        }
+
+        /* 表单项 */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-label span {
+            color: #ff4d4f;
+        }
+
+        /* 输入框样式 */
+        .form-control {
+            width: 100%;
+            padding: 11px 15px;
+            border: 1px solid #dcdee2;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #2d8cf0;
+            box-shadow: 0 0 0 3px rgba(45, 140, 240, 0.1);
+        }
+
+        /* 文本域 */
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* 错误提示 */
+        .error-msg {
+            color: #ff4d4f;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* 按钮 */
+        .submit-btn {
+            width: 100%;
+            padding: 13px;
+            background: #2d8cf0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #1b79e0;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 576px) {
+            .form-body {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="form-header">
+            <h1><i class="fas fa-cubes"></i> 项目生成器</h1>
+            <p>请填写项目信息，系统将自动生成项目结构</p>
+        </div>
+
+        <!-- 表单 -->
+        <form id="projectForm" class="form-body">
+            <!-- 1. 项目名 -->
+            <div class="form-group">
+                <label class="form-label" for="projectName">项目名称 <span>*</span></label>
+                <input type="text" class="form-control" id="projectName" name="projectName" placeholder="请输入项目名称">
+                <div class="error-msg" id="projectNameErr">项目名称不能为空，长度范围是(0,30]，并且符合规范"^[a-zA-Z0-9_]*$"</div>
+            </div>
+
+            <!-- 2. 项目描述 -->
+            <div class="form-group">
+                <label class="form-label" for="projectDesc">项目描述 <span>*</span></label>
+                <textarea class="form-control" id="projectDesc" name="projectDesc" placeholder="请描述项目用途、功能等"></textarea>
+                <div class="error-msg" id="projectDescErr">项目描述不能为空，长度范围是(0,500]</div>
+            </div>
+
+            <!-- 3. App名 -->
+            <div class="form-group">
+                <label class="form-label" for="appName">App名称 <span>*</span></label>
+                <input type="text" class="form-control" id="appName" name="appName" placeholder="请输入App名称（英文/数字）">
+                <div class="error-msg" id="appNameErr">App名不能为空，长度范围是(0,30]，并且符合规范"^[a-zA-Z0-9_]*$"</div>
+            </div>
+
+            <!-- 4. Server名 -->
+            <div class="form-group">
+                <label class="form-label" for="serverName">Server名称 <span>*</span></label>
+                <input type="text" class="form-control" id="serverName" name="serverName" placeholder="请输入服务名称">
+                <div class="error-msg" id="serverNameErr">Server名不能为空，长度范围是(0,30]，并且符合规范"^[a-zA-Z0-9_]*$"</div>
+            </div>
+
+            <!-- 5. 编程语言 -->
+            <div class="form-group">
+                <label class="form-label" for="language">编程语言 <span>*</span></label>
+                <select class="form-control" id="language" name="language">
+                    <option value="">请选择编程语言</option>
+                    <option value="Go">Go</option>
+                </select>
+                <div class="error-msg" id="languageErr">请选择编程语言</div>
+            </div>
+
+            <!-- 6. 语言版本 -->
+            <div class="form-group">
+                <label class="form-label" for="version">语言版本 <span>*</span></label>
+                <input type="text" class="form-control" id="version" name="version" placeholder="例如：1.21.0">
+                <div class="error-msg" id="versionErr">语言版本不能为空，长度范围是(0,30]，并且符合规范"^[a-zA-Z0-9_.]*$"</div>
+            </div>
+
+            <!-- 7. CVS URL -->
+            <div class="form-group">
+                <label class="form-label" for="cvsUrl">CVS URL <span>*</span></label>
+                <input type="text" class="form-control" id="cvsUrl" name="cvsUrl" placeholder="例如：https://github.com/user/repo.git">
+                <div class="error-msg" id="cvsUrlErr">CVS URL不能为空，长度范围是(0,200]</div>
+            </div>
+
+            <!-- 提交按钮 -->
+            <div class="form-group">
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-magic"></i> 生成项目
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 底部请求记录表格区域 -->
+    <div class="log-wrap">
+        <h3><i class="fas fa-history"></i> 请求操作日志</h3>
+        <table id="reqLogTable" width="80%" border="1" cellspacing="0" cellpadding="5">
+            <thead>
+                <tr>
+                    <th width="10%">行号</th>
+                    <th width="20%">请求时间</th>
+                    <th width="50%">提交参数</th>
+                    <th width="20%">请求结果</th>
+                </tr>
+            </thead>
+            <tbody id="logTbody">
+                <!-- JS动态追加行 -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const form = document.getElementById('projectForm');
+        const logTbody = document.getElementById('logTbody');
+        var lineNo = 0;
+
+        // 追加日志到表格函数
+        function addLogRow(lineNo, time, reqJson, result){
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${lineNo}</td>
+                <td>${time}</td>
+                <td>${reqJson}</td>
+                <td id="logResult${lineNo}">${result}</td>
+            `;
+            // 新日志插入表格最上方
+            logTbody.prepend(tr);
+        }
+
+        function extractFilename(contentDisposition) {
+            // 1. 优先处理 RFC 5987 编码的文件名（支持中文/特殊字符）
+            const encodedFilenameMatch = contentDisposition.match(/filename\*=.*?''([^;]+)/i);
+            if (encodedFilenameMatch) {
+                // 解码 URL 编码
+                return decodeURIComponent(encodedFilenameMatch[1]);
+            }
+
+            // 2. 处理普通 filename（带引号/不带引号）
+            const regularFilenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+            if (regularFilenameMatch) {
+                return regularFilenameMatch[1].trim();
+            }
+
+            // 3. 没有匹配到文件名
+            return null;
+        }
+
+        function downloadProjectFiles(seq) {
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            const raw = JSON.stringify({
+                "seq": seq
+            });
+
+            const requestOptions = {
+                method: "POST",
+                headers: myHeaders,
+                body: raw,
+                redirect: "follow"
+            };
+
+            fetch("http://localhost:8080/projects/download", requestOptions)
+            .then(response => {
+                // 1. 从响应头解析文件名
+                let fileName = "download.zip";
+                const disposition = response.headers.get('Content-Disposition');
+                if (disposition) {
+                    alert("Content-Disposition: " + disposition);
+                    fileName = extractFilename(disposition);
+                }
+                if (disposition && disposition.indexOf('filename=') !== -1) {
+                    // 提取 filename="" 里的文件名
+                    const fileNameMatch = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                    if (fileNameMatch != null && fileNameMatch[1]) {
+                        fileName = decodeURIComponent(fileNameMatch[1].replace(/['"]/g, ''));
+                    }
+                }
+
+                // 2. 转成文件流
+                return response.blob().then(blob => {
+                    // 3. 自动下载
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = fileName; // 使用后端返回的文件名
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(a.href);
+                });
+            })
+            .catch((error) => console.error(error));
+
+        }
+
+        
+        // 表单提交校验
+        form.addEventListener('submit', function (e) {
+            // 阻止默认提交
+            e.preventDefault();
+            
+            // 校验状态
+            let isValid = true;
+
+            // 1. 校验项目名称
+            const projectName = document.getElementById('projectName').value.trim();
+            const projectNameErr = document.getElementById('projectNameErr');
+            if (projectName.length < 1 || projectName.length > 30 || !/^[a-zA-Z0-9_]+$/.test(projectName)) {
+                projectNameErr.style.display = 'block';
+                isValid = false;
+            } else {
+                projectNameErr.style.display = 'none';
+            }
+
+            // 2. 校验项目描述
+            const projectDesc = document.getElementById('projectDesc').value.trim();
+            const projectDescErr = document.getElementById('projectDescErr');
+            if (projectDesc.length < 1 || projectDesc.length > 500) {
+                projectDescErr.style.display = 'block';
+                isValid = false;
+            } else {
+                projectDescErr.style.display = 'none';
+            }
+
+            // 3. 校验App名（英文数字下划线）
+            const appName = document.getElementById('appName').value.trim();
+            const appNameErr = document.getElementById('appNameErr');
+            const appReg = /^[a-zA-Z0-9_]*$/;
+            if (appName.length < 1 || appName.length > 30 || !appReg.test(appName)) {
+                appNameErr.style.display = 'block';
+                isValid = false;
+            } else {
+                appNameErr.style.display = 'none';
+            }
+
+            // 4. 校验Server名
+            const serverName = document.getElementById('serverName').value.trim();
+            const serverNameErr = document.getElementById('serverNameErr');
+            if (serverName.length < 1 || serverName.length > 30 || !/^[a-zA-Z0-9_]*$/.test(serverName)) {
+                serverNameErr.style.display = 'block';
+                isValid = false;
+            } else {
+                serverNameErr.style.display = 'none';
+            }
+
+            // 5. 校验编程语言
+            const language = document.getElementById('language').value;
+            const languageErr = document.getElementById('languageErr');
+            if (!language) {
+                languageErr.style.display = 'block';
+                isValid = false;
+            } else {
+                languageErr.style.display = 'none';
+            }
+
+            // 6. 校验语言版本
+            const version = document.getElementById('version').value.trim();
+            const versionErr = document.getElementById('versionErr');
+            if (version.length < 1 || version.length > 30 || !/^[a-zA-Z0-9_.]+$/.test(version)) {
+                versionErr.style.display = 'block';
+                isValid = false;
+            } else {
+                versionErr.style.display = 'none';
+            }
+
+            // 7. 校验CVS URL
+            const cvsUrl = document.getElementById('cvsUrl').value.trim();
+            const cvsUrlErr = document.getElementById('cvsUrlErr');
+            if (cvsUrl.length < 1 || cvsUrl.length > 200) {
+                cvsUrlErr.style.display = 'block';
+                isValid = false;
+            } else {
+                cvsUrlErr.style.display = 'none';
+            }
+
+            // 全部校验通过
+            if (isValid) {
+                const formData = {
+                    "project_name": projectName,
+                    "project_description": projectDesc,
+                    "project_app_name": appName,
+                    "project_server_name": serverName,
+                    "project_language": language,
+                    "project_language_version": version,
+                    "project_cvs_url": cvsUrl
+                };
+
+            try {
+                reqTime = new Date().toLocaleString();
+                response = fetch("http://localhost:8080/projects/generate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json;charset=UTF-8" 
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(rsp => {
+                    return rsp.json();
+                })
+                .then(data => {
+                    if (data.errCode === 0) {
+                        alert("项目生成成功！");
+                        addLogRow(lineNo++, reqTime, JSON.stringify(formData), "<a href=\"javascript:void(0)\" onclick=\"downloadProjectFiles('" + data.data.seq + "')\">下载链接</a>");
+                    } else {
+                        alert("项目生成失败：" + data.message);
+                        addLogRow(lineNo++, reqTime, JSON.stringify(formData), JSON.stringify(data));
+                    }
+                })
+            } catch (error) {
+                alert("提交失败：" + error.message);
+            }
+            }
+        });
+    </script>
+</body>
+</html>
