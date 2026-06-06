@@ -14,8 +14,8 @@ import (
 type ServiceContext struct {
 	Logger         *slog.Logger
 	ShutdownLogic  *logic.ShutdownLogic
-	ProjectLogic   *logic.ProjectLogic
-	ProjectService *service.ProjectService
+	DemoLogic   *logic.DemoLogic
+	DemoService *service.DemoService
 }
 
 var gServiceCtx *ServiceContext
@@ -34,13 +34,13 @@ func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) 
 		}
 
 		shutdownLogic := logic.NewShutdownLogic()
-		projectLogic := logic.NewProjectLogic()
-		projectService := service.NewProjectService(projectLogic)
+		demoLogic := logic.NewDemoLogic()
+		demoService := service.NewDemoService(demoLogic)
 
 		gServiceCtx = &ServiceContext{
 			ShutdownLogic:  shutdownLogic,
-			ProjectLogic:   projectLogic,
-			ProjectService: projectService,
+			DemoLogic:   demoLogic,
+			DemoService: demoService,
 			Logger:         logger,
 		}
 	})
