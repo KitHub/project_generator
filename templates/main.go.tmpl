@@ -1,8 +1,8 @@
 package main
 
 import (
-	"{{.ProjectCvsUrl}}/{{.ProjectName}}/config"
-	servicecontext "{{.ProjectCvsUrl}}/{{.ProjectName}}/servicecontext"
+	"{{.ProjectGoPkgName}}/config"
+	servicecontext "{{.ProjectGoPkgName}}/servicecontext"
 	"context"
 	"flag"
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"{{.ProjectCvsUrl}}/{{.ProjectName}}/protocols/{{.AppName}}"
+	"github.com/KitHub/protocols/{{.AppName}}"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"

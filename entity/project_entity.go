@@ -12,6 +12,7 @@ type GenerateProjectParam struct {
 	ProjectLanguage        string                          `json:"project_language"`         // project language
 	ProjectLanguageVersion string                          `json:"project_language_version"` // project language version
 	ProjectCvsUrl          string                          `json:"project_cvs_url"`          // project cvs url
+	ProjectGoPkgName       string                          `json:"project_go_pkg_name"`      // project go package name
 	AppName                string                          `json:"app_name"`                 // project name
 	ServerName             string                          `json:"server_name"`              // server name
 	Components             []GenerateProjectParamComponent `json:"components"`               // project components

@@ -133,12 +133,25 @@ func NewProjectService(projectLogic *logic.ProjectLogic) *ProjectService {
 }
 
 func composeProjectServiceParam(ctx context.Context, req *projectgeneratorapi.GenerateProjectRequest) entity.GenerateProjectParam {
+	projectCvsUrl := req.GetProjectCvsUrl()
+	projectGoPkgName := projectCvsUrl
+
+	{
+		if after, ok := strings.CutPrefix(projectCvsUrl, "http://"); ok {
+			projectGoPkgName = after
+		}
+		if after, ok := strings.CutPrefix(projectCvsUrl, "https://"); ok {
+			projectGoPkgName = after
+		}
+	}
+
 	result := entity.GenerateProjectParam{
 		ProjectName:            req.GetProjectName(),
 		ProjectDesc:            req.GetProjectDescription(),
 		ProjectLanguage:        req.GetProjectLanguage(),
 		ProjectLanguageVersion: req.GetProjectLanguageVersion(),
-		ProjectCvsUrl:          req.GetProjectCvsUrl(),
+		ProjectCvsUrl:          projectCvsUrl,
+		ProjectGoPkgName:       projectGoPkgName,
 		AppName:                req.GetProjectAppName(),
 		ServerName:             req.GetProjectServerName(),
 	}

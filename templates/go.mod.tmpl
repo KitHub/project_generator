@@ -1,9 +1,9 @@
-module {{.ProjectCvsUrl}}/{{.ProjectName}}
+module {{.ProjectGoPkgName}}
 
 go {{.ProjectLanguageVersion}}
 
 require (
-	"{{.ProjectCvsUrl}}/{{.ProjectName}}/protocols"
+	"{{.ProjectGoPkgName}}/{{.ProjectName}}/protocols"
     github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.69.0
