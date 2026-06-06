@@ -38,10 +38,10 @@ func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) 
 		demoService := service.NewDemoService(demoLogic)
 
 		gServiceCtx = &ServiceContext{
-			ShutdownLogic:  shutdownLogic,
-			DemoLogic:   demoLogic,
-			DemoService: demoService,
-			Logger:         logger,
+			ShutdownLogic: shutdownLogic,
+			DemoLogic:     demoLogic,
+			DemoService:   demoService,
+			Logger:        logger,
 		}
 	})
 
