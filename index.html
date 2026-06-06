@@ -271,7 +271,6 @@
                 let fileName = "download.zip";
                 const disposition = response.headers.get('Content-Disposition');
                 if (disposition) {
-                    alert("Content-Disposition: " + disposition);
                     fileName = extractFilename(disposition);
                 }
                 if (disposition && disposition.indexOf('filename=') !== -1) {
