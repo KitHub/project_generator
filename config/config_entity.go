@@ -41,9 +41,9 @@ type TemplateConfigEntity struct {
 }
 
 type ConfigEntity struct {
-	LogConfig   *LogConfigEntity      `yaml:"log"`
-	DBConfig    *DBConfigEntity       `yaml:"db"`
-	Server      *ServerConfigEntity   `yaml:"server"`
-	TraceConfig *TraceConfigEntity    `yaml:"trace"`
-	Templates   *TemplateConfigEntity `yaml:"templates"`
+	LogConfig    *LogConfigEntity      `yaml:"log"`
+	DBConfig     *DBConfigEntity       `yaml:"db"`
+	ServerConfig *ServerConfigEntity   `yaml:"server"`
+	TraceConfig  *TraceConfigEntity    `yaml:"trace"`
+	Templates    *TemplateConfigEntity `yaml:"templates"`
 }

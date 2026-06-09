@@ -77,8 +77,8 @@ func initServices(ctx context.Context, serviceConfig *config.ConfigEntity,
 	serviceContext *servicecontext.ServiceContext) (err error) {
 
 	slog.InfoContext(ctx, "init services")
-	grpcServiceConfig := serviceConfig.Server.GrpcService
-	httpServiceConfig := serviceConfig.Server.HttpService
+	grpcServiceConfig := serviceConfig.ServerConfig.GrpcService
+	httpServiceConfig := serviceConfig.ServerConfig.HttpService
 	_, err = initRpcServer(ctx, grpcServiceConfig, serviceContext)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to init RPC server",
