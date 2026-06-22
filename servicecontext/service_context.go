@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"sync"
 
+	"github.com/KitHub/project_generator/component"
 	"github.com/KitHub/project_generator/config"
 	"github.com/KitHub/project_generator/logic"
 	"github.com/KitHub/project_generator/service"
@@ -13,6 +14,7 @@ import (
 
 type ServiceContext struct {
 	Logger         *slog.Logger
+	CronComponent  *component.CronComponent
 	ShutdownLogic  *logic.ShutdownLogic
 	ProjectLogic   *logic.ProjectLogic
 	ProjectService *service.ProjectService
@@ -33,6 +35,8 @@ func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) 
 			return
 		}
 
+		cronComponent := component.NewCronConponent()
+
 		shutdownLogic := logic.NewShutdownLogic()
 		projectLogic := logic.NewProjectLogic()
 		projectService := service.NewProjectService(projectLogic)
@@ -42,6 +46,7 @@ func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) 
 			ProjectLogic:   projectLogic,
 			ProjectService: projectService,
 			Logger:         logger,
+			CronComponent:  cronComponent,
 		}
 	})
 
