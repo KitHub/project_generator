@@ -52,6 +52,13 @@ func main() {
 		panic(err)
 	}
 
+	// init callbacks
+	err = initServer(ctx, serviceContext.InitComponent.GetInitCallbacks(ctx))
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to init server", slog.String("error", err.Error()))
+		panic(err)
+	}
+
 	// init services
 	err = initServices(ctx, &configEntity, serviceContext)
 	if err != nil {
@@ -239,4 +246,15 @@ func shutdownGracefully(ctx context.Context, shutdownCallbacks []component.Shutd
 	}
 
 	slog.InfoContext(ctx, "graceful shutdown done")
+}
+
+func initServer(ctx context.Context, initCallbacks []component.InitCallback) error {
+	slog.InfoContext(ctx, "start init callbacks")
+	for _, callback := range initCallbacks {
+		if err := callback(ctx); err != nil {
+			slog.ErrorContext(ctx, "failed to execute init callback", slog.Any("error", err))
+			return err
+		}
+	}
+	return nil
 }

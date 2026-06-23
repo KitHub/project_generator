@@ -15,6 +15,7 @@ import (
 type ServiceContext struct {
 	Logger            *slog.Logger
 	CronComponent     *component.CronComponent
+	InitComponent     *component.InitComponent
 	ShutdownComponent *component.ShutdownComponent
 	ProjectLogic      *logic.ProjectLogic
 	ProjectService    *service.ProjectService
@@ -36,12 +37,14 @@ func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) 
 		}
 
 		cronComponent := component.NewCronConponent()
+		initComponent := component.NewInitComponent(ctx)
 		shutdownComponent := component.NewShutdownComponent(ctx)
 		projectLogic := logic.NewProjectLogic()
 		projectService := service.NewProjectService(projectLogic)
 
 		gServiceCtx = &ServiceContext{
 			ShutdownComponent: shutdownComponent,
+			InitComponent:     initComponent,
 			ProjectLogic:      projectLogic,
 			ProjectService:    projectService,
 			Logger:            logger,
