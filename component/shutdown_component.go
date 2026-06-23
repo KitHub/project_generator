@@ -1,4 +1,4 @@
-package logic
+package component
 
 import (
 	"context"
@@ -6,19 +6,18 @@ import (
 	"sync"
 )
 
-var shutdownLogic *ShutdownLogic
-var onceShutdownLogic sync.Once
+var shutdownComponentInstance *ShutdownComponent
+var onceForShutdownComponentInstance sync.Once = sync.Once{}
 
 type ShutdownCallback func(ctx context.Context) error
 
-type ShutdownLogic struct {
+type ShutdownComponent struct {
 	shutdownCallbacks      []ShutdownCallback
 	lock                   *sync.Mutex
 	shutdownCallbacksDoing bool
 }
 
-// ExecuteShutdownCallbacks implements [ShutdownLogic].
-func (s *ShutdownLogic) ExecuteShutdownCallbacks(ctx context.Context) error {
+func (s *ShutdownComponent) ExecuteShutdownCallbacks(ctx context.Context) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -42,8 +41,7 @@ func (s *ShutdownLogic) ExecuteShutdownCallbacks(ctx context.Context) error {
 	return err
 }
 
-// RegisterShutdownCallback implements [ShutdownLogic].
-func (s *ShutdownLogic) RegisterShutdownCallback(callback ShutdownCallback) {
+func (s *ShutdownComponent) RegisterShutdownCallback(callback ShutdownCallback) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -55,18 +53,18 @@ func (s *ShutdownLogic) RegisterShutdownCallback(callback ShutdownCallback) {
 	s.shutdownCallbacks = append(s.shutdownCallbacks, callback)
 }
 
-func (s *ShutdownLogic) GetShutdownCallbacks(ctx context.Context) []ShutdownCallback {
+func (s *ShutdownComponent) GetShutdownCallbacks(ctx context.Context) []ShutdownCallback {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	return s.shutdownCallbacks
 }
 
-func NewShutdownLogic() *ShutdownLogic {
-	onceShutdownLogic.Do(func() {
-		shutdownLogic = &ShutdownLogic{
+func NewShutdownComponent(ctx context.Context) *ShutdownComponent {
+	onceForShutdownComponentInstance.Do(func() {
+		shutdownComponentInstance = &ShutdownComponent{
 			shutdownCallbacks: make([]ShutdownCallback, 0),
 			lock:              &sync.Mutex{},
 		}
 	})
-	return shutdownLogic
+	return shutdownComponentInstance
 }

@@ -12,8 +12,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/KitHub/project_generator/component"
 	"github.com/KitHub/project_generator/config"
-	"github.com/KitHub/project_generator/logic"
 	"github.com/KitHub/project_generator/servicecontext"
 	"github.com/KitHub/protocols/projectgeneratorapi"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -60,7 +60,7 @@ func main() {
 		panic(err)
 	}
 
-	shutdownGracefully(ctx, servicecontext.GetServiceContext().ShutdownLogic.GetShutdownCallbacks(ctx))
+	shutdownGracefully(ctx, servicecontext.GetServiceContext().ShutdownComponent.GetShutdownCallbacks(ctx))
 }
 
 func parepareArgs(ctx context.Context) ServerArgs {
@@ -122,7 +122,7 @@ func initRpcServer(ctx context.Context, serverConfig *config.ServiceConfigEntity
 		}
 	}()
 
-	servicecontext.GetServiceContext().ShutdownLogic.RegisterShutdownCallback(func(ctx context.Context) error {
+	servicecontext.GetServiceContext().ShutdownComponent.RegisterShutdownCallback(func(ctx context.Context) error {
 		server.GracefulStop()
 		slog.InfoContext(ctx, "gRPC server stopped gracefully")
 		return nil
@@ -161,7 +161,7 @@ func initHttpServer(ctx context.Context, httpServerConfig *config.ServiceConfigE
 		}
 	}()
 
-	servicecontext.GetServiceContext().ShutdownLogic.RegisterShutdownCallback(func(ctx context.Context) error {
+	servicecontext.GetServiceContext().ShutdownComponent.RegisterShutdownCallback(func(ctx context.Context) error {
 		err = server.Shutdown(ctx)
 		if err != nil {
 			slog.ErrorContext(ctx, "Failed to shutdown HTTP server gracefully", slog.String("error", err.Error()))
@@ -221,7 +221,7 @@ func rspModifier(ctx context.Context, w http.ResponseWriter, resp proto.Message)
 	return nil
 }
 
-func shutdownGracefully(ctx context.Context, shutdownCallbacks []logic.ShutdownCallback) {
+func shutdownGracefully(ctx context.Context, shutdownCallbacks []component.ShutdownCallback) {
 	slog.InfoContext(ctx, "listening close signals...")
 	c := make(chan os.Signal, 1)
 	signal.Notify(

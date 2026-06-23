@@ -13,11 +13,11 @@ import (
 )
 
 type ServiceContext struct {
-	Logger         *slog.Logger
-	CronComponent  *component.CronComponent
-	ShutdownLogic  *logic.ShutdownLogic
-	ProjectLogic   *logic.ProjectLogic
-	ProjectService *service.ProjectService
+	Logger            *slog.Logger
+	CronComponent     *component.CronComponent
+	ShutdownComponent *component.ShutdownComponent
+	ProjectLogic      *logic.ProjectLogic
+	ProjectService    *service.ProjectService
 }
 
 var gServiceCtx *ServiceContext
@@ -36,17 +36,16 @@ func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) 
 		}
 
 		cronComponent := component.NewCronConponent()
-
-		shutdownLogic := logic.NewShutdownLogic()
+		shutdownComponent := component.NewShutdownComponent(ctx)
 		projectLogic := logic.NewProjectLogic()
 		projectService := service.NewProjectService(projectLogic)
 
 		gServiceCtx = &ServiceContext{
-			ShutdownLogic:  shutdownLogic,
-			ProjectLogic:   projectLogic,
-			ProjectService: projectService,
-			Logger:         logger,
-			CronComponent:  cronComponent,
+			ShutdownComponent: shutdownComponent,
+			ProjectLogic:      projectLogic,
+			ProjectService:    projectService,
+			Logger:            logger,
+			CronComponent:     cronComponent,
 		}
 	})
 
