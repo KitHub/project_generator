@@ -132,9 +132,16 @@ func NewProjectService(projectLogic *logic.ProjectLogic) *ProjectService {
 	return projectService
 }
 
+func trimAllTrailingSlash(s string) string {
+	for strings.HasSuffix(s, "/") {
+		s = strings.TrimSuffix(s, "/")
+	}
+	return s
+}
+
 func composeProjectServiceParam(ctx context.Context, req *projectgeneratorapi.GenerateProjectRequest) entity.GenerateProjectParam {
 	projectCvsUrl := req.GetProjectCvsUrl()
-	projectGoPkgName := projectCvsUrl
+	projectGoPkgName := trimAllTrailingSlash(projectCvsUrl)
 
 	{
 		if after, ok := strings.CutPrefix(projectCvsUrl, "http://"); ok {

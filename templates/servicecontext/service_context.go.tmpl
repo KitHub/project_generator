@@ -5,10 +5,10 @@ import (
 	"log/slog"
 	"sync"
 
-	"{{.ProjectGoPkgName}}/{{.ProjectName}}/component"
-	"{{.ProjectGoPkgName}}/{{.ProjectName}}/config"
-	"{{.ProjectGoPkgName}}/{{.ProjectName}}/logic"
-	"{{.ProjectGoPkgName}}/{{.ProjectName}}/service"
+	"{{.ProjectGoPkgName}}/component"
+	"{{.ProjectGoPkgName}}/config"
+	"{{.ProjectGoPkgName}}/logic"
+	"{{.ProjectGoPkgName}}/service"
     "gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -37,7 +37,7 @@ func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) 
 		}
 
         cronComponent := component.NewCronConponent()
-        initComponent := component.NewIniComponent(ctx)
+        initComponent := component.NewInitComponent(ctx)
 		shutdownComponent := component.NewShutdownComponent(ctx)
 		demoLogic := logic.NewDemoLogic()
 		demoService := service.NewDemoService(demoLogic)
