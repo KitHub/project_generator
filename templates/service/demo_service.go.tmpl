@@ -15,7 +15,7 @@ type DemoService struct {
 	demoLogic *logic.DemoLogic
 }
 
-func NewDemoService(demoLogic *logic.DemoLogic) *DemoService {
+func NewDemoService(ctx context.Context, demoLogic *logic.DemoLogic) *DemoService {
 	demoServiceOnce.Do(func() {
 		demoServiceInstance = &DemoService{
 			demoLogic: demoLogic,

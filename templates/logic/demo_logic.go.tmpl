@@ -16,7 +16,7 @@ func (d *DemoLogic) Hello(ctx context.Context) error {
 	panic("unimplemented")
 }
 
-func NewDemoLogic() *DemoLogic {
+func NewDemoLogic(ctx context.Context) *DemoLogic {
 	onceDemoLogic.Do(func() {
 		demoLogic = &DemoLogic{}
 	})

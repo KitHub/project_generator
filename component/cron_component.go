@@ -25,7 +25,7 @@ type CronComponent struct {
 	taskMap map[string]cron.EntryID
 }
 
-func NewCronConponent() *CronComponent {
+func NewCronConponent(ctx context.Context) *CronComponent {
 	onceForCronComponentInstance.Do(func() {
 		cronComponentInstance = &CronComponent{
 			cron:    cron.New(cron.WithSeconds()),

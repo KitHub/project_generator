@@ -78,7 +78,7 @@ func (p *ProjectLogic) GenerateProject(ctx context.Context, param entity.Generat
 	return entity.GenerateProjectResult{ProjectFilesDir: projectDir}, nil
 }
 
-func NewProjectLogic() *ProjectLogic {
+func NewProjectLogic(ctx context.Context) *ProjectLogic {
 	onceProjectLogic.Do(func() {
 		projectLogic = &ProjectLogic{}
 	})

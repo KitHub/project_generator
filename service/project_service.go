@@ -111,7 +111,7 @@ func (p *ProjectService) GenerateProject(ctx context.Context, req *projectgenera
 	return rsp, nil
 }
 
-func NewProjectService(projectLogic *logic.ProjectLogic) *ProjectService {
+func NewProjectService(ctx context.Context, projectLogic *logic.ProjectLogic) *ProjectService {
 	onceProjectService.Do(func() {
 		projectService = &ProjectService{
 			ProjectLogic:    projectLogic,

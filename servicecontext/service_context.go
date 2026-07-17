@@ -36,11 +36,11 @@ func InitServiceContext(ctx context.Context, configEntity *config.ConfigEntity) 
 			return
 		}
 
-		cronComponent := component.NewCronConponent()
+		cronComponent := component.NewCronConponent(ctx)
 		initComponent := component.NewInitComponent(ctx)
 		shutdownComponent := component.NewShutdownComponent(ctx)
-		projectLogic := logic.NewProjectLogic()
-		projectService := service.NewProjectService(projectLogic)
+		projectLogic := logic.NewProjectLogic(ctx)
+		projectService := service.NewProjectService(ctx, projectLogic)
 
 		gServiceCtx = &ServiceContext{
 			ShutdownComponent: shutdownComponent,
