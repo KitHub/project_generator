@@ -80,14 +80,15 @@ func (p *ProjectService) DownloadGeneratedProject(ctx context.Context, req *proj
 }
 
 // GenerateProject implements [projectgeneratorapi.ProjectGeneratorAPIServer].
-func (p *ProjectService) GenerateProject(ctx context.Context, req *projectgeneratorapi.GenerateProjectRequest) (*projectgeneratorapi.GenerateProjectResponse, error) {
+func (p *ProjectService) GenerateProject(ctx context.Context, req *projectgeneratorapi.GenerateProjectRequest) (rsp *projectgeneratorapi.GenerateProjectResponse, err error) {
 	seq := strings.ReplaceAll(uuid.New().String(), "-", "")
 	slog.InfoContext(ctx, "received generate project request", slog.String("seq", seq), slog.Any("request", req.String()))
 
 	if req.Validate() != nil {
 		errMsg := "invalid request parameters: " + req.Validate().Error()
 		slog.ErrorContext(ctx, errMsg, slog.Any("request", req.String()))
-		return nil, status.Errorf(codes.InvalidArgument, "invalid request parameters")
+		rsp = createPBRspWithPBMessageType[projectgeneratorapi.GenerateProjectResponse](ctx, codes.InvalidArgument, nil)
+		return rsp, nil
 	}
 
 	param := composeProjectServiceParam(ctx, req)
@@ -95,16 +96,14 @@ func (p *ProjectService) GenerateProject(ctx context.Context, req *projectgenera
 	result, err := p.ProjectLogic.GenerateProject(ctx, param, config.GetConfig(ctx).Templates.TemplatesDir)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to generate project", slog.Any("error", err))
-		return nil, err
+		rsp = createPBRspWithPBMessageType[projectgeneratorapi.GenerateProjectResponse](ctx, codes.Internal, nil)
+		return rsp, nil
 	}
 
-	rsp := &projectgeneratorapi.GenerateProjectResponse{
-		ErrCode: 0,
-		ErrMsg:  "ok",
-		Data: &projectgeneratorapi.GenerateProjectResponseData{
-			Seq: seq,
-		},
-	}
+	rsp = createPBRspWithPBMessageType[projectgeneratorapi.GenerateProjectResponse](ctx, codes.OK, &projectgeneratorapi.GenerateProjectResponseData{
+		Seq: seq,
+	})
+
 	p.generateSeqsMap.Store(seq, result.ProjectFilesDir)
 
 	slog.InfoContext(ctx, "project generated successfully", slog.Any("result", result), slog.String("seq", seq))
